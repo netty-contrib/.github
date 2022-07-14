@@ -17,6 +17,10 @@ name: Testing
 
 on:
   workflow_call:
+    inputs:
+      enabled:
+        required: true
+        type: boolean
 
 env:
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryhandler.count=5 -Dmaven.wagon.httpconnectionManager.ttlSeconds=240
@@ -27,3 +31,4 @@ jobs:
     steps:
       - name: Echoing stuff
         run: echo ${{ env.MAVEN_OPTS }}
+        if: ${{ inputs.enabled }}
