@@ -23,4 +23,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out project
-        run: echo ${{ secrets.TESTING }}
+        run: echo ${{ secrets.GPG_KEYNAME }}
