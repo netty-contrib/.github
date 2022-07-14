@@ -17,6 +17,7 @@ name: Testing
 
 on:
   workflow_call:
+    secrets: inherit
 
 jobs:
   Test:
