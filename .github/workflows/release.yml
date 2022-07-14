@@ -3,11 +3,12 @@ on:
   workflow_call:
     inputs:
       version:
-        description: 'The version being released (pom.xml files will be updated)'
-        required: true
+        description: 'The version being released (pom.xml files will be updated) - leave empty for Maven default'
+        required: false
         type: string
+        default: ''
       netty:
-        description: 'The version range to use for the Netty Core dependencies - will not be updated if empty'
+        description: 'The version range to use for the Netty Core dependencies - will use value from pom.xml if empty'
         required: false
         type: string
         default: ''
@@ -54,10 +55,20 @@ jobs:
             }]
 
       # See https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#setting-an-environment-variable
-      - name: Inspect Project
+      - name: Inspect Project (with given version)
+        if: ${{ inputs.version }}
         run: |
           echo "netty_snapshot=$(mvn help:evaluate -Dexpression=netty.version -q -DforceStdout)" >> $GITHUB_ENV
           echo "tag=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)-${{ inputs.version }}" >> $GITHUB_ENV
+          echo "inputs_version=${{ inputs.version }}" >> $GITHUB_ENV
+      - name: Inspect Project (with Maven computed version)
+        if: ${{ ! inputs.version }}
+        run: |
+          echo "netty_snapshot=$(mvn help:evaluate -Dexpression=netty.version -q -DforceStdout)" >> $GITHUB_ENV
+          mvn release:update-versions -DautoVersionSubmodules=true
+          echo "inputs_version=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout | sed s/-SNAPSHOT//)" >> $GITHUB_ENV
+          git restore **/pom.xml
+          echo "tag=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)-${{ env.inputs_version }}" >> $GITHUB_ENV
 
       - name: Set Netty Core Version
         if: ${{ inputs.netty }}
@@ -75,7 +86,7 @@ jobs:
           git commit -m 'Update versions for release'
 
       - name: Prepare release with Maven
-        run: mvn -B -ntp --file pom.xml release:prepare -DpreparationGoals=clean -DskipTests '-DreleaseVersion=${{ inputs.version }}' '-Dtag=${{ env.tag }}' -Drelease.gpg.keyname=${{ secrets.GPG_KEYNAME }} -Drelease.gpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
+        run: mvn -B -ntp --file pom.xml release:prepare -DpreparationGoals=clean -DskipTests '-DreleaseVersion=${{ env.inputs_version }}' '-Dtag=${{ env.tag }}' -Drelease.gpg.keyname=${{ secrets.GPG_KEYNAME }} -Drelease.gpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
 
       - name: Perform release with Maven
         run: mvn -B -ntp --file pom.xml release:perform -Drelease.gpg.keyname=${{ secrets.GPG_KEYNAME }} -Drelease.gpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
