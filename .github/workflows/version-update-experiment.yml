@@ -26,3 +26,6 @@ jobs:
           mvn release:update-versions -DautoVersionSubmodules=true
           echo "inputs_version=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout | sed s/-SNAPSHOT//)" >> $GITHUB_ENV
           git restore **/pom.xml
+          git status
+          git diff
+          echo ${{ env.inputs_version }}
