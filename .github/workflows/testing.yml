@@ -17,11 +17,13 @@ name: Testing
 
 on:
   workflow_call:
-    secrets: inherit
+
+env:
+  MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryhandler.count=5 -Dmaven.wagon.httpconnectionManager.ttlSeconds=240
 
 jobs:
   Test:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out project
-        run: echo ${{ secrets.GPG_KEYNAME }}
+      - name: Echoing stuff
+        run: echo ${{ env.MAVEN_OPTS }}
