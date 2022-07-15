@@ -29,7 +29,7 @@ jobs:
           git status
           git diff
           echo After restore
-          git restore '**/pom.xml'
+          git restore .
           git status
           git diff
           echo ${{ env.inputs_version }}
