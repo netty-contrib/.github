@@ -138,10 +138,9 @@ jobs:
         run: echo "netty_version='-Dnetty.version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)'" >> $GITHUB_ENV
         working-directory: ./netty
 
-      - name: Build Project
+      - name: Check the Javadocs
         run: |
-          set -euo pipefail
-          mvn install -B -ntp -Pleak ${{ env.netty_version }} -DskipTests -DperformRelease
+          mvn clean install -B -ntp ${{ env.netty_version }} -DskipTests -DperformRelease
         working-directory: ./project
 
   CodeQL:
