@@ -67,7 +67,7 @@ jobs:
           echo "netty_snapshot=$(mvn help:evaluate -Dexpression=netty.version -q -DforceStdout)" >> $GITHUB_ENV
           mvn release:update-versions -DautoVersionSubmodules=true
           echo "inputs_version=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout | sed s/-SNAPSHOT//)" >> $GITHUB_ENV
-          git restore **/pom.xml
+          git restore .
           echo "tag=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)-${{ env.inputs_version }}" >> $GITHUB_ENV
 
       - name: Set Netty Core Version
