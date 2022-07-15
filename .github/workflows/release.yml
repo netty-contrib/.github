@@ -96,11 +96,11 @@ jobs:
         run: |
           mvn versions:set-property -Dproperty=netty.version '-DnewVersion=${{ env.netty_snapshot }}'
           mvn versions:commit
-
-      - name: Prepare for next development version
-        run: |
           git add .
           git commit -m 'Update versions for development'
+
+      - name: Push any lingering changes
+        run: |
           git push --tags
 
       - name: Rollback release on failure
