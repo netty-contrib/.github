@@ -95,10 +95,10 @@ jobs:
         if: ${{ inputs.netty }}
         run: |
           mvn versions:set-property -Dproperty=netty.version '-DnewVersion=${{ env.netty_snapshot }}'
+          mvn versions:commit
 
       - name: Prepare for next development version
         run: |
-          mvn versions:commit
           git add .
           git commit -m 'Update versions for development'
           git push --tags
