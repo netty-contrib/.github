@@ -103,6 +103,47 @@ jobs:
             ./project/build-output.txt
             **/hs_err*.log
 
+  Javadocs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v2
+        with:
+          path: project
+
+      - name: Check out Netty core snapshot
+        if: ${{ inputs.build-upstream }}
+        uses: actions/checkout@v2
+        with:
+          repository: netty/netty
+          path: netty
+          ref: main # Netty core main branch for all Netty 5 targeting contrib repos.
+          fetch-depth: 1
+
+      # Configure Java
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: "${{ inputs.java-version }}"
+          cache: 'maven'
+
+      - name: Build Netty Core
+        if: ${{ inputs.build-upstream }}
+        run: mvn install -B -T1C -q -am -pl :netty5-transport,:netty5-codec,:netty5-handler,:netty5-resolver-dns -DskipTests -Dcheckstyle.skip -Dxml.skip -Danimal.sniffer.skip -Djapicmp.skip -Drevapi.skip -Dmaven.javadoc.skip
+        working-directory: ./netty
+
+      # See https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#setting-an-environment-variable
+      - name: Get Netty Core version
+        if: ${{ inputs.build-upstream }}
+        run: echo "netty_version='-Dnetty.version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)'" >> $GITHUB_ENV
+        working-directory: ./netty
+
+      - name: Build Project
+        run: |
+          set -euo pipefail
+          mvn install -B -ntp -Pleak ${{ env.netty_version }} -DskipTests -DperformRelease
+        working-directory: ./project
+
   CodeQL:
     runs-on: ubuntu-latest
     permissions:
